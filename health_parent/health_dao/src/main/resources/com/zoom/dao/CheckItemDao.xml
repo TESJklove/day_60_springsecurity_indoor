@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zoom.dao.CheckItemDao">
+    <select id="findAll" resultType="com.zoom.pojo.CheckItem">
+        select * from t_checkitem
+    </select>
+
+    <select id="findAllByPage" parameterType="string" resultType="com.zoom.pojo.CheckItem">
+      select * from t_checkitem
+      <if test="value!=null and value.length>0">
+        where code = #{value} or name like concat(concat('%',#{value}),'%')
+    </if>
+    </select>
+
+    <!--根据 检查组的id获取到关联的检查项的数据-->
+    <select id="getSetmealListByGroupId" parameterType="int" resultType="com.zoom.pojo.CheckItem">
+        select * from t_checkitem where id in (select checkitem_id from t_checkgroup_checkitem where checkgroup_id = #{checkGroupId})
+    </select>
+</mapper>

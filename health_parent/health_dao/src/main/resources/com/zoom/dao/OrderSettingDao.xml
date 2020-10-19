@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zoom.dao.OrderSettingDao">
+    <!--首先判断是否已存在 根据日期判断-->
+    <select id="isExistByDate" parameterType="date" resultType="int">
+        select count(*) from t_ordersetting where orderDate = #{orderDate}
+    </select>
+    <!--存在则修改,根据日期-->
+    <update id="updateOrderSettingByDate" parameterType="com.zoom.pojo.OrderSetting">
+        update t_ordersetting set number = #{number} where orderDate = #{orderDate}
+    </update>
+    <!--存在则新增-->
+    <insert id="addOrderSetting" parameterType="com.zoom.pojo.OrderSetting">
+      insert into t_ordersetting(number,orderDate) values(#{number},#{orderDate})
+    </insert>
+
+    <!--通过前端传过来的年月获取该月份的所有预约信息-->
+    <select id="getOrderSettingByYearMonth" parameterType="string" resultType="com.zoom.pojo.OrderSetting">
+        select * from t_ordersetting where orderDate like concat(concat('%',#{value}),'%')
+    </select>
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zoom.dao.CheckGroupDao">
+    <!--分页查询检查组-->
+    <select id="selectPageList" parameterType="string" resultType="com.zoom.pojo.CheckGroup">
+        select * from t_checkgroup
+        <where>
+        <if test="value !=null and value.length>0">
+        code = #{value} or name like concat(concat('%',#{value}),'%') or helpCode like concat(concat('%',#{value}),'%')
+    </if>
+        </where>
+    </select>
+    <!--新增检查组-->
+    <insert id="createCheckGroup" parameterType="com.zoom.pojo.CheckGroup">
+<selectKey keyProperty="id" keyColumn="id" resultType="int" order="AFTER" >
+    SELECT LAST_INSERT_ID()
+</selectKey>
+        insert into t_checkgroup(code,name,helpCode,sex,remark,attention) values(#{code},#{name},#{helpCode},#{sex},#{remark},#{attention});
+    </insert>
+
+    <!--新增检查组和检查项的关联-->
+    <insert id="createGroupAndItemConnection" parameterType="map">
+        insert into t_checkgroup_checkitem(checkgroup_id,checkitem_id) values (#{checkGroupId},#{checkItemId})
+    </insert>
+
+    <!--根据检查组的id获取检查项id的集合-->
+    <select id="getItemIdByGroupId" parameterType="int" resultType="int">
+        select checkitem_id from t_checkgroup_checkitem where checkgroup_id = #{checkGroupId}
+    </select>
+
+    <!--手动映射，获取检查组信息以及其关联的检查项-->
+    <resultMap id="checkGroupAll" type="com.zoom.pojo.CheckGroup" autoMapping="true">
+        <collection property="checkItems" column="id" select="com.zoom.dao.CheckGroupDao.getItemIdByGroupId" />
+    </resultMap>
+
+    <!--根据id查询对应的检查组-->
+    <select id="getCheckGroupAllByGroupId" parameterType="int" resultMap="checkGroupAll">
+          select * from t_checkgroup where id = #{CheckGroupId}
+    </select>
+
+    <!--删除该检查组所有相关联的检查项的信息 根据检查组的id-->
+    <delete id="removeCheckItemWithGroupConnectionByGroupId" parameterType="int">
+        delete from t_checkgroup_checkitem where checkgroup_id = #{GroupId}
+    </delete>
+    <!--修改检查组，空值视为不修改-->
+    <update id="updateCheckGroup" parameterType="com.zoom.pojo.CheckGroup">
+        update  t_checkgroup
+        <set>
+            <if test="code!=null and code.length>0">
+                code = #{code},
+            </if>
+            <if test="name!=null and name.length>0">
+                name = #{name},
+            </if>
+            <if test="helpCode!=null and helpCode.length>0">
+                helpCode = #{helpCode},
+            </if>
+            <if test="sex!=null and sex.length>0">
+                sex = #{sex},
+            </if>
+            <if test="remark!=null and remark.length>0">
+                remark = #{remark},
+            </if>
+            <if test="attention!=null and attention.length>0">
+                attention = #{attention},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <!--根据检查组的id查询关联的检查项-->
+    <select id="getItemCountByGroupId" parameterType="int" resultType="int">
+    select count(*) from t_checkgroup_checkitem where checkgroup_id = #{checkGroupId}
+    </select>
+    <!--根据检查组的编号获取使用到该检查组的套餐的数量-->
+    <select id="getSetMealCountByGroupId" parameterType="int" resultType="int">
+        select count(*) from t_setmeal_checkgroup where checkgroup_id = #{checkGroupId}
+    </select>
+    <!--根据id删除对应的检查组-->
+    <delete id="deleteCheckGroupById" parameterType="int">
+        delete from t_checkgroup where id = #{checkGroupId}
+    </delete>
+
+    <!--查询所有的检查组-->
+    <select id="getCheckGroupList" resultType="com.zoom.pojo.CheckGroup">
+        select * from t_checkgroup
+    </select>
+    <!--根据套餐id获取关联的检查组的id集合-->
+    <select id="getIdBySetmealId" parameterType="int" resultType="int">
+        select checkgroup_id from t_setmeal_checkgroup where setmeal_id = #{setmealId}
+    </select>
+
+    <!--根据套餐id获取关联的检查组的集合-->
+    <resultMap id="checkGroupAllMap" type="com.zoom.pojo.CheckGroup" autoMapping="true">
+        <id property="id" column="id"></id>
+        <collection property="checkItems" column="id" select="com.zoom.dao.CheckItemDao.getSetmealListByGroupId"/>
+    </resultMap>
+    <select id="getIdBySetmeal" parameterType="int" resultMap="checkGroupAllMap">
+        select *from t_checkgroup where id in (select checkgroup_id from t_setmeal_checkgroup where setmeal_id = #{setmealId})
+    </select>
+
+
+</mapper>
